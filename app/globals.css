@@ -1,8 +1,87 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* STRUCTURE */
+  --background: #fafafa;
+  --foreground: #1a1a1a;
+
+  --muted: #f2eef8;
+  --muted-foreground: #6e6285;
+
+  --border: #d4cce4;
+  --card: #ffffff;
+  --card-foreground: #1a1a1a;
+
+  --input: #e6e0f0;
+
+  /* BRAND */
+  --primary: #5a2ea6;
+  --primary-foreground: #ffffff;
+
+  --secondary: #7d57c2;
+  --secondary-foreground: #ffffff;
+
+  --tertiary: #9d86d5;
+  --tertiary-foreground: #1a1a1a;
+
+  /* ACCENTS */
+  --accent-1: #0d8ba3; /* teal: engineering, circuits */
+  --accent-1-foreground: #ffffff;
+
+  --accent-2: #e18d0c; /* amber: warnings, highlight */
+  --accent-2-foreground: #1a1a1a;
+
+  /* SEMANTIC */
+  --success: #2f9e44;
+  --warning: #f0b429;
+  --error: #d64545;
+  --info: #2980b9;
+
+  /* Theme Toggle Button */
+  --btn-themetoggle-bg: var(--tertiary);
+  --btn-themetoggle-color: var(--tertiary-foreground);
+}
+
+.dark {
+  /* STRUCTURE */
+  --background: #0d0d12;
+  --foreground: #e9e7ee;
+
+  --muted: #1b1622;
+  --muted-foreground: #a59ab8;
+
+  --border: #2a2333;
+  --card: #16141d;
+  --card-foreground: #e9e7ee;
+
+  --input: #2a2333;
+
+  /* BRAND */
+  --primary: #7d57c2;
+  --primary-foreground: #ffffff;
+
+  --secondary: #9d86d5;
+  --secondary-foreground: #1a1a1a;
+
+  --tertiary: #b8a4e4;
+  --tertiary-foreground: #1a1a1a;
+
+  /* ACCENTS */
+  --accent-1: #18a6be; /* brighter teal for dark bg */
+  --accent-1-foreground: #0a0a0a;
+
+  --accent-2: #ffb54a; /* more visible amber */
+  --accent-2-foreground: #0a0a0a;
+
+  /* SEMANTIC */
+  --success: #3dc257;
+  --warning: #ffcc57;
+  --error: #ef5a5a;
+  --info: #4aa3df;
+
+  /* Theme Toggle Button */
+  --btn-themetoggle-bg: var(--tertiary);
+  --btn-themetoggle-color: var(--tertiary-foreground);
 }
 
 @theme inline {
@@ -16,15 +95,8 @@
   --font-accent: var(--font-pressStart2P);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  /* font-family: Arial, Helvetica, sans-serif; */
 }
