@@ -1,31 +1,36 @@
-import { Geist, Geist_Mono, Press_Start_2P, Montserrat, Merriweather } from "next/font/google";
+import { Press_Start_2P, Inter, JetBrains_Mono } from "next/font/google";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 const pressStart2P = Press_Start_2P({
   subsets: ["latin"],
   weight: "400",
-  variable: "--font-press-start-2p",
+  variable: "--font-pressStart2P",
+  display: "swap",
+  preload: true,
+  fallback: ["cursive", "Arial", "sans-serif"],
+  style: ["normal"],
 });
 
-const montserrat = Montserrat({
+
+const inter = Inter({
   subsets: ["latin"],
-  weight: ["400", "700"],
-  variable: "--font-montserrat",
+  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
+  variable: "--font-inter",
+  display: "swap",
+  preload: true,
+  fallback: ["system-ui", "Arial", "sans-serif"],
+  style: ["normal", "italic"],
 });
 
-const merriweather = Merriweather({
+
+const jetBrainsMono = JetBrains_Mono({
   subsets: ["latin"],
-  weight: ["400", "700"],
-  variable: "--font-merriweather",
+  weight: ["100", "200", "300", "400", "500", "600", "700", "800"],
+  variable: "--font-jetBrainsMono",
+  display: "swap",
+  preload: true,
+  fallback: ["Fira Mono", "Consolas", "monospace"],
+  style: ["normal", "italic"],
 });
 
-export { geistSans, geistMono, pressStart2P, montserrat, merriweather };
+export { pressStart2P, inter, jetBrainsMono };

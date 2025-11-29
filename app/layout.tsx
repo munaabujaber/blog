@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { geistSans, geistMono, merriweather, montserrat, pressStart2P } from "../styles/fonts";
+import { pressStart2P, jetBrainsMono, inter } from "../styles/fonts";
 import "./globals.css";
 
 
@@ -16,7 +16,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${merriweather.variable} ${montserrat.variable} ${pressStart2P.variable} antialiased`}
+        className={`${pressStart2P.variable} ${jetBrainsMono.variable} ${inter.variable} antialiased`}
       >
         {children}
       </body>
