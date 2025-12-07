@@ -11,6 +11,7 @@ import { prismaAdapter } from "better-auth/adapters/prisma";
 import { APIError, createAuthMiddleware } from "better-auth/api";
 import { nextCookies } from "better-auth/next-js";
 import { ac, roles } from "@/lib/permissions";
+import { sendEmailAction } from "@/actions/send-email.action";
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
@@ -26,13 +27,45 @@ export const auth = betterAuth({
       clientSecret: String(process.env.GITHUB_CLIENT_SECRET),
     },
   },
+  emailVerification: {
+    sendOnSignUp: true,
+    expiresIn: 60 * 10, // 10 minutes in seconds
+    autoSignInAfterVerification: true,
+    sendVerificationEmail: async ({ user, url }) => {
+      const link = new URL(url);
+      link.searchParams.set("callbackURL", "/auth/verify");
+
+      await sendEmailAction({
+        to: user.email,
+        subject: "Verify Your Email Address",
+        meta: {
+          description:
+            "Please verify your email address to complete registration.",
+          link: String(link),
+        },
+      });
+    },
+  },
   emailAndPassword: {
     enabled: true,
-    minPasswordLength: 8,
+    minPasswordLength: 6,
     autoSignIn: false,
     password: {
       hash: hashPassword,
       verify: verifyPassword,
+    },
+    requireEmailVerification: true,
+    resetPasswordTokenExpiresIn: 60 * 10, // 10 minutes in seconds
+    sendResetPassword: async ({ user, url }) => {
+      const email = user.email;
+      await sendEmailAction({
+        to: email,
+        subject: "Reset your password",
+        meta: {
+          description: "Please click the link below to reset your password.",
+          link: String(url),
+        },
+      });
     },
   },
   hooks: {
