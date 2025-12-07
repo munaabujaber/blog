@@ -42,3 +42,10 @@ next-env.d.ts
 
 # VSCode
 .vscode/*
+/lib/generated/prisma
+
+# Prisma
+prisma/generated/*
+
+# idea
+.idea/

@@ -1,8 +1,10 @@
+/** @format */
+
 import type { Metadata } from "next";
 import { ThemeProvider } from "next-themes";
 import { pressStart2P, jetBrainsMono, inter } from "../styles/fonts";
-import "./globals.css";
-
+import "@/app/globals.css";
+import { Toaster } from "@/components/ui/sonner";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -21,6 +23,7 @@ export default function RootLayout({
       >
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           {children}
+          <Toaster position="top-center" richColors />
         </ThemeProvider>
       </body>
     </html>
