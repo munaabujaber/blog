@@ -1,6 +1,7 @@
 /** @format */
 
 import { ReturnButton } from "@/components/buttons/return";
+import { MagicLinkLoginForm } from "@/components/magic-link-login-form";
 import { SignInOauthButton } from "@/components/buttons/sign-in-oauth";
 import { LogInForm } from "@/components/login-form";
 import Link from "next/link";
@@ -15,6 +16,7 @@ export default function Page() {
       </div>
 
       <div className="space-y-4">
+        <MagicLinkLoginForm />
         <LogInForm />
 
         <p className="text-muted-foreground text-sm">
