@@ -39,7 +39,7 @@ export default async function Page() {
       <div className="flex items-center gap-2">
         {session.user.role === "ADMIN" && (
           <Button size="sm" asChild>
-            <Link href="/admin/dashboard">Admin Dashboard</Link>
+            <Link href="/dashboard">Admin Dashboard</Link>
           </Button>
         )}
 

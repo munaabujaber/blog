@@ -19,12 +19,18 @@
     "jsx": "react-jsx",
     "plugins": [
       {
+        // "name": "next",
+        "name": "@effect/language-service"
+      },
+      {
         "name": "next"
       }
     ],
     "strictNullChecks": true,
     "paths": {
-      "@/*": ["./*"]
+      "@/*": [
+        "./*"
+      ]
     }
   },
   "include": [
@@ -33,8 +39,9 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts",
     "**/*.ts",
-    "**/*.tsx"
-, "proxy.ts"  ],
+    "**/*.tsx",
+    "proxy.ts"
+  ],
   "exclude": [
     "node_modules"
   ]

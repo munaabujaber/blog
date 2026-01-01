@@ -36,7 +36,7 @@ export async function deleteUserAction({ userId }: { userId: string }) {
       redirect("/auth/sign-in");
     }
 
-    revalidatePath("/admin/dashboard");
+    revalidatePath("/dashboard");
 
     return { error: null };
   } catch (err) {

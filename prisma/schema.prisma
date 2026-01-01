@@ -23,20 +23,6 @@ enum UserRole {
   ADMIN
 }
 
-model Post {
-  id        String   @id @default(uuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  title   String
-  content String
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("posts")
-}
-
 model User {
   id        String   @id @default(uuid())
   createdAt DateTime @default(now())
@@ -51,9 +37,12 @@ model User {
   banReason     String?
   banExpires    DateTime?
 
-  sessions Session[]
-  accounts Account[]
-  posts    Post[]
+  sessions   Session[]
+  accounts   Account[]
+  posts      Post[]
+  categories Category[]
+  types      Type[]
+  savedPosts String[]   @default([])
 
   @@map("users")
 }
@@ -110,4 +99,74 @@ model Verification {
 
   @@index([identifier])
   @@map("verifications")
+}
+
+model Post {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  title           String
+  slug            String     @unique
+  description     String
+  content         String
+  imageUrl        String
+  views           Int        @default(0)
+  tags            String[]
+  status          PostStatus @default(draft)
+  readingTimeMins Int
+  featured        Boolean?   @default(false)
+  repoUrl         String?
+
+  relatedPosts   Post[] @relation("RelatedPosts")
+  relatedToPosts Post[] @relation("RelatedPosts")
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  categoryId String?
+  category   Category? @relation(references: [id], fields: [categoryId], onDelete: Cascade)
+
+  typeId String?
+  type   Type?   @relation(references: [id], fields: [typeId], onDelete: Cascade)
+
+  seriesId String?
+  series   Series? @relation(fields: [seriesId], references: [id])
+
+  @@map("posts")
+}
+
+model Category {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  name  String
+  posts Post[]
+
+  userId String
+  user   User   @relation(references: [id], fields: [userId], onDelete: Cascade)
+}
+
+model Type {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  name  String
+  posts Post[]
+
+  userId String
+  user   User   @relation(references: [id], fields: [userId], onDelete: Cascade)
+}
+
+model Series {
+  id    String @id @default(uuid())
+  name  String
+  posts Post[]
+}
+
+enum PostStatus {
+  published
+  draft
 }
