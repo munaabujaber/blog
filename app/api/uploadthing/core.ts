@@ -1,5 +1,6 @@
 import { createUploadthing, type FileRouter } from "uploadthing/next";
 import { UploadThingError } from "uploadthing/server";
+import prisma from "@/lib/prisma";
 
 const f = createUploadthing();
 
@@ -27,10 +28,15 @@ export const ourFileRouter = {
       return { userId: user.id };
     })
     .onUploadComplete(async ({ metadata, file }) => {
-      // This code RUNS ON YOUR SERVER after upload
-      console.log("Upload complete for userId:", metadata.userId);
-
-      console.log("file url", file.ufsUrl);
+    await prisma.upload.create({
+      data: {
+        name: file.name,
+        url: file.ufsUrl,
+        fileKey: file.key,
+        fileType: file.type,
+        fileSize: file.size
+      },
+    });
 
       // !!! Whatever is returned here is sent to the clientside `onClientUploadComplete` callback
       return { uploadedBy: metadata.userId };
@@ -50,6 +56,23 @@ export const ourFileRouter = {
     .onUploadComplete(async ({ metadata, file }) => {
       console.log("mediaPost upload complete for userId:", metadata.userId);
       console.log("file url", file.ufsUrl);
+
+      const uploaded: any = file as any;
+
+      try {
+        await prisma.upload.create({
+          data: {
+            name: (uploaded.name ?? uploaded.filename ?? uploaded.id ?? "") as string,
+            url: uploaded.ufsUrl,
+            fileKey: (uploaded.fileKey ?? uploaded.id ?? "") as string,
+            fileType: (uploaded.mime ?? uploaded.fileType ?? "") as string,
+            fileSize: (uploaded.size ?? 0) as number,
+          },
+        });
+      } catch (err) {
+        console.error("Failed to persist upload", err);
+      }
+
       return { uploadedBy: metadata.userId };
     }),
 
@@ -67,6 +90,23 @@ export const ourFileRouter = {
     .onUploadComplete(async ({ metadata, file }) => {
       console.log("documentUploader upload complete for userId:", metadata.userId);
       console.log("file url", file.ufsUrl);
+
+      const uploaded: any = file as any;
+
+      try {
+        await prisma.upload.create({
+          data: {
+            name: (uploaded.name ?? uploaded.filename ?? uploaded.id ?? "") as string,
+            url: uploaded.ufsUrl,
+            fileKey: (uploaded.fileKey ?? uploaded.id ?? "") as string,
+            fileType: (uploaded.mime ?? uploaded.fileType ?? "") as string,
+            fileSize: (uploaded.size ?? 0) as number,
+          },
+        });
+      } catch (err) {
+        console.error("Failed to persist upload", err);
+      }
+
       return { uploadedBy: metadata.userId };
     }),
 } satisfies FileRouter;

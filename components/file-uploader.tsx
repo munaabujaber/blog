@@ -20,6 +20,13 @@ type ImageUploaderProps = {
   size?: { width?: string; height?: string };
 };
 
+type Upload = {
+  id: string;
+  name: string;
+  url: string;
+  fileType: string;
+};
+
 export default function FileUploader({
   endpoint,
   defaultUrl,
@@ -27,16 +34,18 @@ export default function FileUploader({
   size,
 }: ImageUploaderProps) {
   const cfg = { mode: "manual", appendOnPaste: true, cn } as const;
-
   const widthClass = size?.width ?? "w-48";
   const heightClass = size?.height ?? "h-32";
 
   const [value, setValue] = useState<string | null>(defaultUrl ?? null);
   const [showDropzone, setShowDropzone] = useState<boolean>(!defaultUrl);
+
   // staged selection (manual mode)
   const [selectedFiles, setSelectedFiles] = useState<File[] | null>(null);
   const [stagedPreview, setStagedPreview] = useState<string | null>(null);
   const stagedRef = React.useRef<string | null>(null);
+
+  const [uploads, setUploads] = useState<Upload[]>([]);
 
   // Keep component in sync when defaultUrl prop changes
   useEffect(() => {
@@ -74,14 +83,42 @@ export default function FileUploader({
     }
   }, [selectedFiles]);
 
+  const fetchUploads = async () => {
+    const res = await fetch("/api/uploads");
+    setUploads(await res.json());
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Delete this file?")) return false;
+
+    try {
+      const res = await fetch(`/api/uploads/${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        console.error("Delete failed", data);
+        return false;
+      }
+
+      await fetchUploads();
+      return true;
+    } catch (err) {
+      console.error("Delete request failed", err);
+      return false;
+    }
+  };
+
+  useEffect(() => {
+    fetchUploads();
+  }, []);
+
   const handleSet = (url: string | null) => {
     setValue(url);
     onChangeAction?.(url);
   };
 
-  // If we already have an uploaded image (value), show a static preview block
-  // with fixed dimensions and a remove button. Otherwise show the dropzone UI.
-  if (value) {
+  // Show preview only when we are explicitly hiding the dropzone and we have a value.
+  // When the user removes the image we set `showDropzone` to true so the dropzone appears.
+  if (!showDropzone && value) {
     // Treat any resource served from ufs.sh as unoptimized so SVGs render
     let isSvg = false;
     try {
@@ -95,6 +132,8 @@ export default function FileUploader({
 
     return (
       <div
+        // Avoid reading uploads[0].id when uploads may be empty
+        key={uploads[0]?.id ?? "preview"}
         className={`relative ${widthClass} ${heightClass} rounded-md bg-slate-200 overflow-hidden`}
       >
         <img
@@ -105,15 +144,29 @@ export default function FileUploader({
         <button
           type="button"
           aria-label="Remove image"
-          onClick={() => {
-            // await utapi.deleteFiles(URL);
+          onClick={async () => {
+            // Find matching upload by URL
+            const upload = uploads.find((u) => u.url === value);
+
+            // If found, attempt server delete; otherwise just clear local preview
+            let deleted = false;
+            if (upload) {
+              deleted = await handleDelete(upload.id);
+              if (!deleted) {
+                toast.error("Failed to delete file from server.");
+              }
+            }
+
+            // Clear the value and show the dropzone again regardless
             handleSet(null);
+            setShowDropzone(true);
             setSelectedFiles(null);
             if (stagedRef.current) {
               URL.revokeObjectURL(stagedRef.current);
               stagedRef.current = null;
             }
             setStagedPreview(null);
+            if (deleted) toast.success("File deleted");
           }}
           className="absolute right-2 top-2 z-10 bg-white rounded-full p-1 shadow"
         >
@@ -203,8 +256,10 @@ export default function FileUploader({
         }}
         // track staged files when in manual mode
         onChange={(files) => {
+          // UploadDropzone may call this during its own render lifecycle (e.g. on paste)
+          // so defer setState to avoid React "setState during render of another component" errors.
           const arr = Array.isArray(files) ? files : [files];
-          setSelectedFiles(arr.length ? arr : null);
+          queueMicrotask(() => setSelectedFiles(arr.length ? arr : null));
         }}
         onBeforeUploadBegin={(fileOrFiles: File | File[]) => {
           const files = Array.isArray(fileOrFiles)
@@ -223,18 +278,24 @@ export default function FileUploader({
         }}
         onClientUploadComplete={(res) => {
           const url = res?.[0]?.ufsUrl;
+
           if (url) {
             handleSet(url);
             setShowDropzone(false);
+            // Refresh server-side uploads so we can find DB id later
+            fetchUploads().catch(() => {});
+            toast.success("Upload completed");
+          } else {
+            toast.error("Upload failed. No URL returned.");
           }
-          // clear staged preview/files after successful upload
+
+          // clear selected files after upload
           setSelectedFiles(null);
           if (stagedRef.current) {
             URL.revokeObjectURL(stagedRef.current);
             stagedRef.current = null;
           }
           setStagedPreview(null);
-          alert({ res });
         }}
         onUploadError={(error: Error) => {
           toast.error("Uploading image failed");
