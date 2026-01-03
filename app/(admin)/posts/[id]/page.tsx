@@ -18,7 +18,7 @@ export default async function PostPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const post = await getUniquePost(id);
+  const post = id === "new" ? null : await getUniquePost(id);
   const categories = await getCategories();
 
   return (
@@ -37,7 +37,7 @@ export default async function PostPage({
               <BreadcrumbSeparator />
               <BreadcrumbItem>
                 <BreadcrumbPage>
-                  {id === "new" ? "New" : post.title}
+                  {id === "new" || !post ? "New" : post.title}
                 </BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>

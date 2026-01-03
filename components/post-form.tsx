@@ -5,14 +5,14 @@
 import { createPost } from "@/actions/create-post.action";
 import { updatePost } from "@/actions/update-post.action";
 import { generateSlug } from "@/lib/utils";
+import { z, object } from "zod";
 
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { object, z } from "zod";
-
+import { useEffect } from "react";
 // local implementations
 import ImageUploader from "@/components/image-uploader";
 import RichTextEditor from "@/components/toolbars/editor";
@@ -43,16 +43,21 @@ const CreatableSelect = dynamic(() => import("react-select/creatable"), {
   ssr: false,
 });
 
+const POST_STATUS_VALUES = ["published", "draft"] as const;
+const PostStatusZ = z.enum(
+  (POST_STATUS_VALUES as unknown) as [string, ...string[]]
+);
+
 const formSchema = z.object({
   id: z.string().optional(),
   title: z.string().min(3, { message: "Title is required." }),
   slug: z.string().min(3, { message: "Slug is required." }),
-  description: z.string().min(3, { message: "Description is required." }),
+  description: z.string().min(1, { message: "Description is required." }),
   content: z.string().min(3, { message: "Content is required." }),
-  imageUrl: z.string("Image Url is required"),
-  tags: z.array(object({ label: z.string(), value: z.string() })),
-  status: z.string(),
-  readingTimeMins: z.number(),
+  imageUrl: z.string().min(1, { message: "Image Url is required" }),
+  tags: z.array(z.object({ label: z.string(), value: z.string() })).optional(),
+  status: PostStatusZ,
+  readingTimeMins: z.number().min(1),
   featured: z.boolean().optional(),
   repoUrl: z.string().optional(),
   relatedPosts: z
@@ -94,27 +99,33 @@ export default function PostForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
       id,
-      title,
-      slug,
-      description,
-      content,
-      imageUrl,
-      tags,
-      status,
-      readingTimeMins,
-      featured,
-      repoUrl,
-      relatedPosts,
-      categories,
-      categoryId,
-      types,
-      typeId,
-      series,
-      seriesId,
+      title: title ?? "",
+      slug: slug ?? "",
+      description: description ?? "",
+      content: content ?? "",
+      imageUrl: imageUrl ?? "",
+      tags: tags ?? [],
+      status: status ?? "draft",
+      readingTimeMins: readingTimeMins ?? 1,
+      featured: featured ?? false,
+      repoUrl: repoUrl ?? "",
+      relatedPosts: relatedPosts ?? [],
+      categories: categories ?? [],
+      categoryId: categoryId ?? "",
+      types: types ?? [],
+      typeId: typeId ?? "",
+      series: series ?? "",
+      seriesId: seriesId ?? "",
     },
-    mode: "onBlur",
+    mode: "onChange",
   });
 
+  useEffect(() => {
+    form.trigger();
+  }, [form]);
+
+  console.log("FORM ERRORS:", form.formState.errors);
+  console.log("IS VALID:", form.formState.isValid);
   const onSubmit = async (data: PostFormValues) => {
     if (id) {
       await updatePost(data);
@@ -147,8 +158,25 @@ export default function PostForm({
                     min={1}
                     step={1}
                     {...field}
-                    onChange={(e) => field.onChange(Number(e.target.value))}
+                    onChange={(e) => {
+                      const value = Number(e.target.value);
+                      field.onChange(isNaN(value) ? 1 : value);
+                    }}
                   />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="description"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Description</FormLabel>
+                <FormControl>
+                  <Input {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -204,11 +232,7 @@ export default function PostForm({
                   <FileUploader
                     endpoint="imageUploader"
                     size={{ width: "w-full", height: "h-60" }}
-                    // dropzoneContent={{ label: "Drop or click to add an image" }}
-                    // onClientUploadCompleteAction={(res) => {
-                    //   /*...*/
-                    // }}
-                    // value={field.value}
+                    defaultUrl={field.value}
                     onChangeAction={(url) => {
                       field.onChange(url);
                     }}
@@ -252,7 +276,7 @@ export default function PostForm({
                         label: value,
                         value: value.toLocaleLowerCase(),
                       };
-                      field.onChange([...field.value, newOption]);
+                      field.onChange([...(field.value ?? []), newOption]);
                     }}
                     components={{ IndicatorsContainer: () => null }}
                   />
@@ -314,9 +338,9 @@ export default function PostForm({
                           <SelectValue placeholder="Status" />
                         </SelectTrigger>
                         <SelectContent>
-                          {["published", "draft"].map((status) => (
-                            <SelectItem key={status} value={status}>
-                              {status}
+                          {POST_STATUS_VALUES.map((s) => (
+                            <SelectItem key={s} value={s}>
+                              {s}
                             </SelectItem>
                           ))}
                         </SelectContent>

@@ -25,19 +25,31 @@ export const updatePost = async (params: PostFormValues) => {
       ...rest
     } = params;
 
-    const res = await prisma.post.update({
-      where: { id },
-      data: {
-        ...rest,
-        status: rest.status as PostStatus,
-        userId: session.user.id,
-        tags: tags.map((tag) => tag.value),
+    const normalizedData = {
+      ...rest,
+      status: rest.status as PostStatus,
+      userId: session.user.id,
 
-        relatedPosts: {
-          connect: relatedPosts?.map((post) => ({
-            id: post.id,
-          })),
-        },
+      categoryId: rest.categoryId || null,
+      typeId: rest.typeId || null,
+      seriesId: rest.seriesId || null,
+      repoUrl: rest.repoUrl || null,
+
+      tags: tags?.map((tag) => tag.value) ?? [],
+    };
+
+    const res = await prisma.post.update({
+      where: {
+        id: id!, // id MUST exist when updating
+      },
+      data: {
+        ...normalizedData,
+        relatedPosts: relatedPosts?.length
+          ? {
+              set: [], // clear existing
+              connect: relatedPosts.map((post) => ({ id: post.id })),
+            }
+          : undefined,
       },
     });
     return res;
