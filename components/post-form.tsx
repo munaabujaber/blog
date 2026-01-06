@@ -15,7 +15,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
 // local implementations
 import ImageUploader from "@/components/image-uploader";
-import RichTextEditor from "@/components/toolbars/editor";
+import { SimpleEditor } from "@/components/tiptap-templates/simple/simple-editor";
 
 // shadcn
 import { Button } from "@/components/ui/button";
@@ -250,10 +250,7 @@ export default function PostForm({
               <FormItem>
                 <FormLabel>Content</FormLabel>
                 <FormControl>
-                  <RichTextEditor
-                    content={field.value}
-                    onChange={field.onChange}
-                  />
+                  <SimpleEditor content={field.value} action={field.onChange} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
