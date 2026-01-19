@@ -11,7 +11,7 @@ import { prismaAdapter } from "better-auth/adapters/prisma";
 import { APIError, createAuthMiddleware } from "better-auth/api";
 import { nextCookies } from "better-auth/next-js";
 import { ac, roles } from "@/lib/permissions";
-import { sendEmailAction } from "@/actions/send-email.action";
+import { sendEmailAction } from "@/actions/email";
 
 const options = {
   database: prismaAdapter(prisma, {

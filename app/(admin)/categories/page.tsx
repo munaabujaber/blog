@@ -1,6 +1,6 @@
 /** @format */
 
-import { getCategories } from "@/actions/get-categories.action";
+import { getCategories } from "@/actions/category";
 import CategoriesClien from "./client/categories-client";
 
 export default async function CategoriesPage() {

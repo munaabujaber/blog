@@ -2,7 +2,7 @@
 
 "use client";
 
-import { removePost } from "@/actions/remove-post.action";
+import { removePost } from "@/actions/post";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
 import { Spinner } from "@/components/ui/spinner";

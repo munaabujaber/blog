@@ -2,7 +2,7 @@
 
 "use client";
 
-import { removeCategory } from "@/actions/remove-category.action";
+import { removeCategory } from "@/actions/category";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
 import { Spinner } from "@/components/ui/spinner";

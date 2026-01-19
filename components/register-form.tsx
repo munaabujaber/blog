@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { signUpEmailAction } from "@/actions/sign-up-email.action";
+import { signUpEmailAction } from "@/actions/email";
 
 export const RegisterForm = () => {
   const [isPending, setIsPending] = useState(false);

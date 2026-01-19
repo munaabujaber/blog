@@ -2,8 +2,7 @@
 
 "use client";
 
-import { createCategory } from "@/actions/create-category.action";
-import { updateCategory } from "@/actions/update-category.action";
+import { createCategory, updateCategory } from "@/actions/category";
 import { DataTable } from "@/components/data-table";
 import {
   Breadcrumb,

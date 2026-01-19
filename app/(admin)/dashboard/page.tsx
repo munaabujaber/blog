@@ -103,8 +103,8 @@
 
 /** @format */
 
-import { getCategoriesWithUser } from "@/actions/get-categories-with-user.action";
-import { getPostsByUser } from "@/actions/get-posts-by-user.action";
+import { getCategoriesWithUser } from "@/actions/category";
+import { getPostsByUser } from "@/actions/post";
 import DashboardCard from "@/components/dashboard-card";
 import DashboardCategories from "@/components/dashboard-categories";
 import DashboardChart from "@/components/dashboard-chart";

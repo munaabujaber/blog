@@ -1,6 +1,6 @@
 /** @format */
 "use client";
-import { deleteUserAction } from "@/actions/delete-user.action";
+import { deleteUserAction } from "@/actions/user";
 import { Button } from "@/components/ui/button";
 import { TrashIcon } from "lucide-react";
 import { useState } from "react";

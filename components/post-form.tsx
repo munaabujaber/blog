@@ -2,8 +2,7 @@
 
 "use client";
 
-import { createPost } from "@/actions/create-post.action";
-import { updatePost } from "@/actions/update-post.action";
+import { updatePost, createPost } from "@/actions/post";
 import { generateSlug } from "@/lib/utils";
 import { z, object } from "zod";
 
@@ -45,7 +44,7 @@ const CreatableSelect = dynamic(() => import("react-select/creatable"), {
 
 const POST_STATUS_VALUES = ["published", "draft"] as const;
 const PostStatusZ = z.enum(
-  (POST_STATUS_VALUES as unknown) as [string, ...string[]]
+  (POST_STATUS_VALUES as unknown) as [string, ...string[]],
 );
 
 const formSchema = z.object({

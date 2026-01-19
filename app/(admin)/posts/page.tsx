@@ -1,6 +1,6 @@
 /** @format */
 
-import { getAllPosts } from "@/actions/get-all-posts.action";
+import { getAllPosts } from "@/actions/post";
 import { DataTable } from "@/components/data-table";
 import {
   Breadcrumb,

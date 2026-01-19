@@ -1,7 +1,7 @@
 /** @format */
 
-import { getCategories } from "@/actions/get-categories.action";
-import { getUniquePost } from "@/actions/get-unique-post.action";
+import { getCategories } from "@/actions/category";
+import { getUniquePost } from "@/actions/post";
 import PostForm from "@/components/post-form";
 import {
   Breadcrumb,
