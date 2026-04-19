@@ -38,12 +38,6 @@ export default function FileUploader({
   const [stagedPreview, setStagedPreview] = useState<string | null>(null);
   const stagedRef = React.useRef<string | null>(null);
 
-  // Keep component in sync when defaultUrl prop changes
-  useEffect(() => {
-    setValue(defaultUrl ?? null);
-    setShowDropzone(!(defaultUrl ?? null));
-  }, [defaultUrl]);
-
   // Revoke old object URL when staged preview changes/unmount
   useEffect(() => {
     return () => {
@@ -53,26 +47,6 @@ export default function FileUploader({
       }
     };
   }, []);
-
-  useEffect(() => {
-    // revoke previous
-    if (stagedRef.current) {
-      URL.revokeObjectURL(stagedRef.current);
-      stagedRef.current = null;
-    }
-    if (selectedFiles && selectedFiles.length > 0) {
-      const f = selectedFiles[0];
-      try {
-        const url = URL.createObjectURL(f);
-        stagedRef.current = url;
-        setStagedPreview(url);
-      } catch {
-        setStagedPreview(null);
-      }
-    } else {
-      setStagedPreview(null);
-    }
-  }, [selectedFiles]);
 
   const handleDelete = async (url: string) => {
     if (!confirm("Delete this file?")) return false;
@@ -148,7 +122,7 @@ export default function FileUploader({
             "ut-ready:bg-green-400 ut-uploading:cursor-not-allowed rounded-r-none bg-red-500 bg-none after:bg-orange-400",
         }}
         content={{
-          uploadIcon({ ready, isUploading }) {
+          uploadIcon({ isUploading }) {
             // If there's an uploaded value show it inside the dropzone as the main visual
             // no value here (we returned above)
 
@@ -173,7 +147,7 @@ export default function FileUploader({
               />
             );
           },
-          label({ ready, isUploading }) {
+          label() {
             if (selectedFiles && selectedFiles.length > 0) {
               return `Ready to upload: ${selectedFiles[0].name}`;
             }
@@ -187,8 +161,7 @@ export default function FileUploader({
             }
             return "Allowed formats: PNG, SVG, JPG, JPEG. File size limit: 4MB";
           },
-          button({ ready, isUploading }) {
-            if (!ready) return "Getting ready...";
+          button({ isUploading }) {
             return (
               <div className="flex items-center gap-2 px-3">
                 <UploadCloud
@@ -214,7 +187,27 @@ export default function FileUploader({
           // UploadDropzone may call this during its own render lifecycle (e.g. on paste)
           // so defer setState to avoid React "setState during render of another component" errors.
           const arr = Array.isArray(files) ? files : [files];
-          queueMicrotask(() => setSelectedFiles(arr.length ? arr : null));
+          queueMicrotask(() => {
+            const nextSelected = arr.length ? arr : null;
+            setSelectedFiles(nextSelected);
+
+            if (stagedRef.current) {
+              URL.revokeObjectURL(stagedRef.current);
+              stagedRef.current = null;
+            }
+
+            if (nextSelected && nextSelected.length > 0) {
+              try {
+                const url = URL.createObjectURL(nextSelected[0]);
+                stagedRef.current = url;
+                setStagedPreview(url);
+              } catch {
+                setStagedPreview(null);
+              }
+            } else {
+              setStagedPreview(null);
+            }
+          });
         }}
         onBeforeUploadBegin={(fileOrFiles: File | File[]) => {
           const files = Array.isArray(fileOrFiles)
@@ -250,7 +243,7 @@ export default function FileUploader({
           }
           setStagedPreview(null);
         }}
-        onUploadError={(error: Error) => {
+        onUploadError={() => {
           toast.error("Uploading image failed");
         }}
         onUploadAborted={() => {

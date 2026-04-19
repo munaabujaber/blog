@@ -12,7 +12,6 @@ import { Typography } from "@tiptap/extension-typography";
 import { Highlight } from "@tiptap/extension-highlight";
 import { Subscript } from "@tiptap/extension-subscript";
 import { Superscript } from "@tiptap/extension-superscript";
-import { Selection } from "@tiptap/extensions";
 
 // --- UI Primitives ---
 import { Button } from "@/components/tiptap-ui-primitive/button";
@@ -199,7 +198,14 @@ export function SimpleEditor({
   const [mobileView, setMobileView] = useState<"main" | "highlighter" | "link">(
     "main",
   );
+  const wrapperRef = useRef<HTMLDivElement>(null);
   const previousImages = useRef<Set<string>>(new Set());
+  const skipNextCollapseClickRef = useRef(false);
+  const pointerStartRef = useRef<{
+    x: number;
+    y: number;
+    insideEditor: boolean;
+  } | null>(null);
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -229,7 +235,6 @@ export function SimpleEditor({
       Typography,
       Superscript,
       Subscript,
-      Selection,
       ImageUploadNode.configure({
         accept: "image/*",
         maxSize: MAX_FILE_SIZE,
@@ -259,11 +264,7 @@ export function SimpleEditor({
     },
   });
 
-  useEffect(() => {
-    if (!isMobile && mobileView !== "main") {
-      setMobileView("main");
-    }
-  }, [isMobile, mobileView]);
+  const activeMobileView = isMobile ? mobileView : "main";
 
   useEffect(() => {
     if (editor && onEditorReady) {
@@ -271,11 +272,111 @@ export function SimpleEditor({
     }
   }, [editor, onEditorReady]);
 
+  useEffect(() => {
+    if (!editor) return;
+
+    const isEditorTarget = (node: Node | null) => {
+      const el = node instanceof Element ? node : node?.parentElement;
+      return !!el?.closest(".tiptap.ProseMirror.simple-editor");
+    };
+
+    const handlePointerDown = (event: PointerEvent) => {
+      const target = event.target as Node | null;
+      if (!target) return;
+
+      const wrapper = wrapperRef.current;
+      if (!wrapper) return;
+
+      if (!wrapper.contains(target)) {
+        editor.commands.blur();
+        pointerStartRef.current = null;
+        return;
+      }
+
+      pointerStartRef.current = {
+        x: event.clientX,
+        y: event.clientY,
+        insideEditor: isEditorTarget(target),
+      };
+    };
+
+    const handlePointerUp = (event: PointerEvent) => {
+      const start = pointerStartRef.current;
+      pointerStartRef.current = null;
+      if (!start || !start.insideEditor) return;
+
+      if (!isEditorTarget(event.target as Node | null)) return;
+
+      const moved =
+        Math.abs(event.clientX - start.x) > 3 ||
+        Math.abs(event.clientY - start.y) > 3;
+      const hasRangeSelection = !editor.state.selection.empty;
+
+      // A drag-selection ends with a click event too; skip one collapse click.
+      if (moved && hasRangeSelection) {
+        skipNextCollapseClickRef.current = true;
+      }
+    };
+
+    const handleClick = (event: MouseEvent) => {
+      if (event.button !== 0) return;
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+        return;
+      }
+      if (skipNextCollapseClickRef.current) {
+        skipNextCollapseClickRef.current = false;
+        return;
+      }
+
+      const target = event.target as Node | null;
+      if (!target) return;
+
+      const targetElement =
+        target instanceof Element ? target : target.parentElement;
+      const proseMirror = targetElement?.closest(
+        ".tiptap.ProseMirror.simple-editor",
+      ) as HTMLElement | null;
+      if (!proseMirror) return;
+
+      // Let Tiptap handle image node clicks naturally (node selection).
+      if (targetElement?.closest("img")) {
+        return;
+      }
+
+      const { from, to, empty } = editor.state.selection;
+      if (empty || from === to) return;
+
+      const coords = editor.view.posAtCoords({
+        left: event.clientX,
+        top: event.clientY,
+      });
+
+      if (!coords) return;
+
+      // Keep selection only when clicking truly inside selected characters.
+      // Collapse only when clicking outside the selected text.
+      if (coords.pos > from && coords.pos < to) return;
+
+      requestAnimationFrame(() => {
+        editor.chain().focus().setTextSelection(coords.pos).run();
+      });
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown, true);
+    document.addEventListener("pointerup", handlePointerUp, true);
+    document.addEventListener("click", handleClick, true);
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown, true);
+      document.removeEventListener("pointerup", handlePointerUp, true);
+      document.removeEventListener("click", handleClick, true);
+    };
+  }, [editor]);
+
   return (
-    <div className="simple-editor-wrapper">
+    <div ref={wrapperRef} className="simple-editor-wrapper">
       <EditorContext.Provider value={{ editor }}>
         <Toolbar>
-          {mobileView === "main" ? (
+          {activeMobileView === "main" ? (
             <MainToolbarContent
               onHighlighterClick={() => setMobileView("highlighter")}
               onLinkClick={() => setMobileView("link")}
@@ -283,7 +384,7 @@ export function SimpleEditor({
             />
           ) : (
             <MobileToolbarContent
-              type={mobileView === "highlighter" ? "highlighter" : "link"}
+              type={activeMobileView === "highlighter" ? "highlighter" : "link"}
               onBack={() => setMobileView("main")}
             />
           )}

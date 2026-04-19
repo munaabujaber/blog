@@ -1,18 +1,47 @@
 .tiptap.ProseMirror {
+  --tt-image-selected-overlay: rgb(124 58 237 / 0.24);
+
   img {
     max-width: 100%;
     height: auto;
     display: block;
+    transition:
+      filter 0.15s ease,
+      box-shadow 0.15s ease,
+      outline-color 0.15s ease;
   }
 
-  > img:not([data-type="emoji"] img) {
+  > img:not([data-type="emoji"]) {
     margin: 2rem 0;
     outline: 0.125rem solid transparent;
     border-radius: var(--tt-radius-xs, 0.25rem);
   }
 
-  img:not([data-type="emoji"] img).ProseMirror-selectednode {
-    outline-color: var(--tt-brand-color-500);
+  // Case 1: ProseMirror puts selected class directly on the image node.
+  img.ProseMirror-selectednode:not([data-type="emoji"]) {
+    outline-color: var(--tt-brand-color-500) !important;
+    box-shadow: 0 0 0 9999px var(--tt-image-selected-overlay) inset !important;
+    filter: brightness(0.82) saturate(1.1) !important;
+  }
+
+  // Case 2: ProseMirror marks a wrapping node as selected.
+  .ProseMirror-selectednode:has(> img:not([data-type="emoji"])) {
+    position: relative;
+    outline: 0.125rem solid var(--tt-brand-color-500);
+    border-radius: var(--tt-radius-xs, 0.25rem);
+    overflow: hidden;
+
+    &::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: var(--tt-image-selected-overlay);
+      pointer-events: none;
+    }
+
+    > img:not([data-type="emoji"]) {
+      filter: brightness(0.82) saturate(1.1);
+    }
   }
 
   // Thread image handling

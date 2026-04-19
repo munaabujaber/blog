@@ -23,6 +23,18 @@ type Uploaded = {
   fileType: string;
 };
 
+type UploadthingResponseItem = {
+  fileKey?: string;
+  id?: string;
+  fileName?: string;
+  name?: string;
+  ufsUrl?: string;
+  url?: string;
+  fileUrl?: string;
+  mimeType?: string;
+  fileType?: string;
+};
+
 export default function MediaUploader({
   endpoint,
   defaultUrl = null,
@@ -39,7 +51,7 @@ export default function MediaUploader({
   const [uploads, setUploads] = useState<Uploaded[]>([]);
 
   // helper to convert UploadThing response into my Uploaded shape
-  function mapResToUploaded(res: any[]): Uploaded[] {
+  function mapResToUploaded(res: UploadthingResponseItem[]): Uploaded[] {
     return res.map((f) => ({
       id: f.fileKey ?? f.id ?? String(Math.random()),
       name: f.fileName ?? f.name ?? "file",

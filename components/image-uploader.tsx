@@ -8,8 +8,15 @@ import { deleteUploadByUrl } from "@/lib/upload-delete";
 import { validateImageBeforeUpload } from "@/lib/uploadthing-utils";
 import { X } from "lucide-react";
 import Image from "next/image";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { toast } from "sonner";
+
+type UploadDropzoneProps = React.ComponentProps<typeof UploadDropzone>;
+type DropzoneContent = UploadDropzoneProps["content"];
+type DropzoneAppearance = UploadDropzoneProps["appearance"];
+type UploadCompleteHandler = NonNullable<
+  UploadDropzoneProps["onClientUploadComplete"]
+>;
 
 type ImageUploaderProps = {
   /** Controlled value. If provided, component becomes controlled and parent must update this prop when onChangeAction is called. */
@@ -18,12 +25,9 @@ type ImageUploaderProps = {
   defaultUrl?: string | null;
   onChangeAction?: (url: string | null) => void;
   endpoint: keyof OurFileRouter;
-  dropzoneContent?: { label?: string; allowedContent?: string };
-  dropzoneAppearance?: any;
-  // Optional overrides forwarded to UploadButton
-  buttonAppearance?: any;
-  buttonContent?: any;
-  onClientUploadCompleteAction?: (res: any) => void;
+  dropzoneContent?: DropzoneContent;
+  dropzoneAppearance?: DropzoneAppearance;
+  onClientUploadCompleteAction?: UploadCompleteHandler;
 };
 
 export default function ImageUploader({
@@ -33,8 +37,6 @@ export default function ImageUploader({
   endpoint,
   dropzoneContent,
   dropzoneAppearance,
-  buttonAppearance,
-  buttonContent,
   onClientUploadCompleteAction,
 }: ImageUploaderProps) {
   const isControlled = value !== undefined;
@@ -44,14 +46,7 @@ export default function ImageUploader({
     defaultUrl ?? null
   );
   const displayedValue = isControlled ? value ?? null : internalValue;
-  const [showDropzone, setShowDropzone] = useState<boolean>(!displayedValue);
-
-  // Keep show/displayed state in sync when controlled value changes
-  useEffect(() => {
-    if (isControlled) {
-      setShowDropzone(!(value ?? null));
-    }
-  }, [isControlled, value]);
+  const showDropzone = !displayedValue;
 
   const handleSet = (url: string | null) => {
     // notify parent
@@ -60,12 +55,8 @@ export default function ImageUploader({
     // update internal state only when uncontrolled
     if (!isControlled) {
       setInternalValue(url);
-      setShowDropzone(!url);
     }
   };
-
-  // Holds files selected in manual mode; only images allowed here
-  const [selectedFiles, setSelectedFiles] = useState<File[] | null>(null);
 
   if (!showDropzone && displayedValue) {
     // Some upload URLs (ufs.sh) don't contain .svg extension but can still be SVGs.
@@ -104,7 +95,6 @@ export default function ImageUploader({
                 return;
               }
               handleSet(null);
-              setShowDropzone(true);
               toast.success("Image deleted");
             }}
           >
@@ -174,8 +164,6 @@ export default function ImageUploader({
 
           // forward to caller if they provided a handler
           onClientUploadCompleteAction?.(res);
-          // clear selected files after upload
-          setSelectedFiles(null);
         }}
       />
 
