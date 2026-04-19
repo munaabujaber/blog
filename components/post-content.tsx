@@ -73,7 +73,7 @@ export default function PostContent({ post }: PostContentProps) {
           />
         </div>
 
-        <ReadOnlyEditor content={post.content} />
+        <ReadOnlyEditor content={post.content} width="1000px" height="auto" />
 
         <div className="flex gap-2 py-6 flex-wrap">
           {post.tags.map((tag) => (

@@ -4,8 +4,9 @@
 
 import { OurFileRouter } from "@/app/api/uploadthing/core";
 import { UploadDropzone, UploadButton } from "@/lib/uploadthing";
-import React, { useState, useEffect } from "react";
-import Image from "next/image";
+import { deleteUploadByUrl } from "@/lib/upload-delete";
+import React, { useState } from "react";
+import { X } from "lucide-react";
 import { toast } from "sonner";
 
 type MediaUploaderProps = {
@@ -46,6 +47,21 @@ export default function MediaUploader({
       fileType: f.mimeType ?? f.fileType ?? "",
     }));
   }
+
+  const handleRemoveUpload = async (upload: Uploaded) => {
+    const deleted = await deleteUploadByUrl(upload.url);
+    if (!deleted) {
+      toast.error("Failed to delete file from server.");
+      return;
+    }
+
+    setUploads((prev) => prev.filter((u) => u.id !== upload.id));
+    if (preview === upload.url) {
+      setPreview(null);
+    }
+    onChangeAction?.(null);
+    toast.success("File deleted");
+  };
 
   return (
     <div className="flex flex-col gap-3">
@@ -150,7 +166,15 @@ export default function MediaUploader({
       {uploads.length > 0 && (
         <div className="mt-4 grid grid-cols-2 gap-3">
           {uploads.map((u) => (
-            <div key={u.id} className="bg-white rounded p-2">
+            <div key={u.id} className="relative bg-white rounded p-2">
+              <button
+                type="button"
+                onClick={() => void handleRemoveUpload(u)}
+                className="absolute right-1 top-1 rounded-full bg-white/90 p-1 shadow cursor-pointer"
+                aria-label={`Delete ${u.name}`}
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
               {u.fileType.startsWith("image/") ? (
                 <img
                   src={u.url}

@@ -61,14 +61,17 @@ import { LinkIcon } from "@/components/tiptap-icons/link-icon";
 
 // --- Hooks ---
 import { useIsBreakpoint } from "@/hooks/use-is-breakpoint";
-import { useWindowSize } from "@/hooks/use-window-size";
-import { useCursorVisibility } from "@/hooks/use-cursor-visibility";
 
 // --- Components ---
 import { ThemeToggle } from "@/components/tiptap-templates/simple/theme-toggle";
 
 // --- Lib ---
-import { handleImageUpload, MAX_FILE_SIZE } from "@/lib/tiptap-utils";
+import {
+  handleImageUpload,
+  MAX_FILE_SIZE,
+  extractImageUrls,
+  deleteImageFromServer,
+} from "@/lib/tiptap-utils";
 
 // --- Styles ---
 import "@/components/tiptap-templates/simple/simple-editor.scss";
@@ -193,11 +196,10 @@ export function SimpleEditor({
   action,
 }: SimpleEditorProps) {
   const isMobile = useIsBreakpoint();
-  const { height } = useWindowSize();
   const [mobileView, setMobileView] = useState<"main" | "highlighter" | "link">(
-    "main"
+    "main",
   );
-  const toolbarRef = useRef<HTMLDivElement>(null);
+  const previousImages = useRef<Set<string>>(new Set());
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -237,14 +239,24 @@ export function SimpleEditor({
       }),
     ],
     content,
+    onCreate: ({ editor }) => {
+      const urls = extractImageUrls(editor);
+      previousImages.current = new Set(urls);
+    },
     onUpdate: ({ editor }) => {
       action?.(editor.getHTML());
-    },
-  });
 
-  const rect = useCursorVisibility({
-    editor,
-    overlayHeight: toolbarRef.current?.getBoundingClientRect().height ?? 0,
+      const currentUrls = extractImageUrls(editor);
+      const currentUrlsSet = new Set(currentUrls);
+
+      previousImages.current.forEach((url) => {
+        if (!currentUrlsSet.has(url)) {
+          deleteImageFromServer(url);
+        }
+      });
+
+      previousImages.current = currentUrlsSet;
+    },
   });
 
   useEffect(() => {
@@ -262,16 +274,7 @@ export function SimpleEditor({
   return (
     <div className="simple-editor-wrapper">
       <EditorContext.Provider value={{ editor }}>
-        <Toolbar
-          ref={toolbarRef}
-          style={{
-            ...(isMobile
-              ? {
-                  bottom: `calc(100% - ${height - rect.y}px)`,
-                }
-              : {}),
-          }}
-        >
+        <Toolbar>
           {mobileView === "main" ? (
             <MainToolbarContent
               onHighlighterClick={() => setMobileView("highlighter")}
@@ -289,7 +292,7 @@ export function SimpleEditor({
         <EditorContent
           editor={editor}
           role="presentation"
-          className="simple-editor-content"
+          className="simple-editor-content simple-editor-content--editable"
         />
       </EditorContext.Provider>
     </div>

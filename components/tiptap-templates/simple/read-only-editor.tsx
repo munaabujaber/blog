@@ -19,10 +19,29 @@ import "@/components/tiptap-node/heading-node/heading-node.scss";
 import "@/components/tiptap-node/paragraph-node/paragraph-node.scss";
 import "@/components/tiptap-templates/simple/simple-editor.scss";
 
-export default function ReadOnlyEditor({ content }: { content: string }) {
+interface ReadOnlyEditorProps {
+  content: string;
+  width?: string | number;
+  height?: string | number;
+  maxWidth?: string | number;
+  maxHeight?: string | number;
+}
+
+export default function ReadOnlyEditor({
+  content,
+  width,
+  height,
+  maxWidth,
+  maxHeight,
+}: ReadOnlyEditorProps) {
   const editor = useEditor({
     immediatelyRender: false,
     editable: false,
+    editorProps: {
+      attributes: {
+        class: "simple-editor simple-editor--readonly",
+      },
+    },
     extensions: [
       StarterKit,
       TextAlign.configure({ types: ["heading", "paragraph"] }),
@@ -37,5 +56,19 @@ export default function ReadOnlyEditor({ content }: { content: string }) {
     content,
   });
 
-  return <EditorContent editor={editor} className="simple-editor-content" />;
+  const style: React.CSSProperties = {
+    width: width ?? "100%",
+    height,
+    maxWidth: maxWidth ?? "760px",
+    maxHeight,
+  };
+
+  return (
+    <div className="simple-editor-readonly-wrapper" style={style}>
+      <EditorContent
+        editor={editor}
+        className="simple-editor-content simple-editor-content--readonly"
+      />
+    </div>
+  );
 }

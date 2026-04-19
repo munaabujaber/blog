@@ -141,10 +141,10 @@ export default function PostForm({
   return (
     <Form {...form}>
       <form
-        className="grid grid-cols-2 gap-6"
+        className="grid grid-cols-1 gap-6 2xl:grid-cols-[minmax(48rem,1fr)_22rem]"
         onSubmit={form.handleSubmit(onSubmit)}
       >
-        <div className="flex flex-col gap-6 py-6">
+        <div className="flex min-w-0 flex-col gap-6 py-6">
           <FormField
             control={form.control}
             name="readingTimeMins"
@@ -283,7 +283,7 @@ export default function PostForm({
           />
         </div>
 
-        <div className="flex flex-col gap-6">
+        <div className="flex min-w-0 flex-col gap-6">
           <Card className="w-full max-w-sm">
             <CardHeader>
               <CardTitle>Extra Settings</CardTitle>

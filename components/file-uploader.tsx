@@ -3,12 +3,12 @@
 "use client";
 
 import { OurFileRouter } from "@/app/api/uploadthing/core";
-import { UploadDropzone, UploadButton } from "@/lib/uploadthing";
+import { UploadDropzone } from "@/lib/uploadthing";
+import { deleteUploadByUrl } from "@/lib/upload-delete";
 import { cn } from "@/lib/utils";
 import { isImageLike } from "@/lib/uploadthing-utils";
 
 import { X, UploadCloud } from "lucide-react";
-import Image from "next/image";
 import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
 
@@ -18,13 +18,6 @@ type ImageUploaderProps = {
   onChangeAction?: (url: string | null) => void;
   // Optional container size classes – use Tailwind width/height classes like 'w-48'/'h-32'
   size?: { width?: string; height?: string };
-};
-
-type Upload = {
-  id: string;
-  name: string;
-  url: string;
-  fileType: string;
 };
 
 export default function FileUploader({
@@ -44,8 +37,6 @@ export default function FileUploader({
   const [selectedFiles, setSelectedFiles] = useState<File[] | null>(null);
   const [stagedPreview, setStagedPreview] = useState<string | null>(null);
   const stagedRef = React.useRef<string | null>(null);
-
-  const [uploads, setUploads] = useState<Upload[]>([]);
 
   // Keep component in sync when defaultUrl prop changes
   useEffect(() => {
@@ -83,33 +74,16 @@ export default function FileUploader({
     }
   }, [selectedFiles]);
 
-  const fetchUploads = async () => {
-    const res = await fetch("/api/uploads");
-    setUploads(await res.json());
-  };
-
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (url: string) => {
     if (!confirm("Delete this file?")) return false;
 
     try {
-      const res = await fetch(`/api/uploads/${id}`, { method: "DELETE" });
-      if (!res.ok) {
-        const data = await res.json().catch(() => null);
-        console.error("Delete failed", data);
-        return false;
-      }
-
-      await fetchUploads();
-      return true;
+      return await deleteUploadByUrl(url);
     } catch (err) {
       console.error("Delete request failed", err);
       return false;
     }
   };
-
-  useEffect(() => {
-    fetchUploads();
-  }, []);
 
   const handleSet = (url: string | null) => {
     setValue(url);
@@ -119,21 +93,9 @@ export default function FileUploader({
   // Show preview only when we are explicitly hiding the dropzone and we have a value.
   // When the user removes the image we set `showDropzone` to true so the dropzone appears.
   if (!showDropzone && value) {
-    // Treat any resource served from ufs.sh as unoptimized so SVGs render
-    let isSvg = false;
-    try {
-      const parsed = new URL(value);
-      isSvg =
-        /\.svg($|\?)/i.test(parsed.pathname) ||
-        parsed.hostname.endsWith(".ufs.sh");
-    } catch {
-      isSvg = /\.svg($|\?)/i.test(value);
-    }
-
     return (
       <div
-        // Avoid reading uploads[0].id when uploads may be empty
-        key={uploads[0]?.id ?? "preview"}
+        key={value}
         className={`relative ${widthClass} ${heightClass} rounded-md bg-slate-200 overflow-hidden`}
       >
         <img
@@ -145,19 +107,12 @@ export default function FileUploader({
           type="button"
           aria-label="Remove image"
           onClick={async () => {
-            // Find matching upload by URL
-            const upload = uploads.find((u) => u.url === value);
-
-            // If found, attempt server delete; otherwise just clear local preview
-            let deleted = false;
-            if (upload) {
-              deleted = await handleDelete(upload.id);
-              if (!deleted) {
-                toast.error("Failed to delete file from server.");
-              }
+            const deleted = value ? await handleDelete(value) : true;
+            if (!deleted) {
+              toast.error("Failed to delete file from server.");
+              return;
             }
 
-            // Clear the value and show the dropzone again regardless
             handleSet(null);
             setShowDropzone(true);
             setSelectedFiles(null);
@@ -166,7 +121,7 @@ export default function FileUploader({
               stagedRef.current = null;
             }
             setStagedPreview(null);
-            if (deleted) toast.success("File deleted");
+            toast.success("File deleted");
           }}
           className="absolute right-2 top-2 z-10 bg-white rounded-full p-1 shadow"
         >
@@ -282,8 +237,6 @@ export default function FileUploader({
           if (url) {
             handleSet(url);
             setShowDropzone(false);
-            // Refresh server-side uploads so we can find DB id later
-            fetchUploads().catch(() => {});
             toast.success("Upload completed");
           } else {
             toast.error("Upload failed. No URL returned.");

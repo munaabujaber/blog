@@ -13,6 +13,7 @@ import {
   type NodeWithPos,
 } from "@tiptap/react"
 import { uploadFiles } from "./uploadthing"
+import { deleteUploadByUrl } from "./upload-delete"
 import { toast } from "sonner"
 
 export const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
@@ -617,4 +618,42 @@ export function getSelectedNodesOfType(
   }
 
   return results
+}
+
+/**
+ * Extracts all image URLs currently present in the editor document.
+ * @param editor The Tiptap editor instance
+ * @returns An array of image URLs
+ */
+export function extractImageUrls(editor: Editor): string[] {
+  const urls: string[] = []
+  if (!editor || !editor.state.doc) return urls
+
+  editor.state.doc.descendants((node) => {
+    if (node.type.name === "image" || node.type.name === "imageUpload") {
+      if (node.attrs.src) {
+        urls.push(node.attrs.src)
+      }
+    }
+  })
+  
+  return urls
+}
+
+/**
+ * Sends a DELETE request to the server to delete an image by its URL.
+ * Only targets UploadThing URLs to prevent unnecessary requests.
+ * @param url The URL of the image to delete
+ * @returns boolean indicating success
+ */
+export async function deleteImageFromServer(url: string): Promise<boolean> {
+  // Only try to delete from uploadthing servers
+  if (
+    !url.includes("utfs.io") &&
+    !url.includes("uploadthing.com") &&
+    !url.includes("ufs.sh")
+  ) {
+    return false;
+  }
+  return deleteUploadByUrl(url)
 }

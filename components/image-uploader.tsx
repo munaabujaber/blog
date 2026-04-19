@@ -3,11 +3,9 @@
 "use client";
 
 import { OurFileRouter } from "@/app/api/uploadthing/core";
-import { UploadDropzone, UploadButton } from "@/lib/uploadthing";
-import {
-  isImageLike,
-  validateImageBeforeUpload,
-} from "@/lib/uploadthing-utils";
+import { UploadDropzone } from "@/lib/uploadthing";
+import { deleteUploadByUrl } from "@/lib/upload-delete";
+import { validateImageBeforeUpload } from "@/lib/uploadthing-utils";
 import { X } from "lucide-react";
 import Image from "next/image";
 import React, { useState, useEffect } from "react";
@@ -99,9 +97,15 @@ export default function ImageUploader({
             type="button"
             className="absolute rounded-full right-0 top-0 bg-white opacity-60
             hover:opacity-100 shadow-2xl p-2 m-2 cursor-pointer"
-            onClick={() => {
+            onClick={async () => {
+              const deleted = await deleteUploadByUrl(displayedValue);
+              if (!deleted) {
+                toast.error("Failed to delete image from server.");
+                return;
+              }
               handleSet(null);
               setShowDropzone(true);
+              toast.success("Image deleted");
             }}
           >
             <X />
