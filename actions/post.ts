@@ -4,9 +4,8 @@
 
 import prisma from "@/lib/prisma";
 import { authSession } from "@/lib/auth-utils";
-import { Post } from "@/prisma/generated/client";
 import { PostStatus } from "@/prisma/generated/client";
-import { PostFormValues } from "@/components/post-form";
+import type { PostFormValues } from "@/components/post-form";
 
 export const getUniquePost = async (id: string) => {
   try {
@@ -16,7 +15,17 @@ export const getUniquePost = async (id: string) => {
       throw new Error("Unauthorized: User Id not found");
     }
 
-    const res = (await prisma.post.findUnique({ where: { id } })) as Post;
+    const res = await prisma.post.findUnique({
+      where: { id },
+      include: {
+        relatedPosts: {
+          select: {
+            id: true,
+            title: true,
+          },
+        },
+      },
+    });
 
     return res;
   } catch (err) {
@@ -74,12 +83,9 @@ export const updatePost = async (params: PostFormValues) => {
     }
 
     const {
-      categories,
-      types,
       tags,
       id,
       relatedPosts,
-      series,
       ...rest
     } = params;
 
@@ -102,16 +108,14 @@ export const updatePost = async (params: PostFormValues) => {
       },
       data: {
         ...normalizedData,
-        relatedPosts: relatedPosts?.length
-          ? {
-              set: [], // clear existing
-              connect: relatedPosts.map((post) => ({ id: post.id })),
-            }
-          : undefined,
+        relatedPosts: {
+          set: relatedPosts?.map((post) => ({ id: post.id })) ?? [],
+        },
       },
     });
     return res;
   } catch (err) {
+    console.error({ err });
     throw new Error("Something went wrong");
   }
 };
@@ -150,14 +154,12 @@ export const createPost = async (params: PostFormValues) => {
     // }
 
     const {
-      categories,
-      types,
       tags,
-      id,
+      id: _id,
       relatedPosts,
-      series,
       ...rest
     } = params;
+    void _id;
 
     const normalizedData = {
       ...rest,

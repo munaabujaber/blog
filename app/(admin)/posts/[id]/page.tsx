@@ -3,6 +3,7 @@
 import { getCategories } from "@/actions/category";
 import { getUniquePost } from "@/actions/post";
 import PostForm from "@/components/post-form";
+import prisma from "@/lib/prisma";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -19,7 +20,23 @@ export default async function PostPage({
 }) {
   const { id } = await params;
   const post = id === "new" ? null : await getUniquePost(id);
-  const categories = await getCategories();
+  const [categories, types, seriesOptions, availableRelatedPosts] =
+    await Promise.all([
+      getCategories(),
+      prisma.type.findMany({
+        orderBy: { createdAt: "desc" },
+        select: { id: true, name: true },
+      }),
+      prisma.series.findMany({
+        orderBy: { name: "asc" },
+        select: { id: true, name: true },
+      }),
+      prisma.post.findMany({
+        where: id === "new" ? undefined : { NOT: { id } },
+        orderBy: { updatedAt: "desc" },
+        select: { id: true, title: true },
+      }),
+    ]);
 
   return (
     <>
@@ -56,9 +73,17 @@ export default async function PostPage({
             tags={post.tags.map((tag) => ({ label: tag, value: tag }))}
             status={post.status}
             categories={categories}
+            types={types}
+            seriesOptions={seriesOptions}
+            availableRelatedPosts={availableRelatedPosts}
             slug={post.slug}
             description={post.description}
             readingTimeMins={post.readingTimeMins}
+            featured={post.featured ?? false}
+            repoUrl={post.repoUrl ?? ""}
+            typeId={post.typeId ?? ""}
+            seriesId={post.seriesId ?? ""}
+            relatedPosts={post.relatedPosts ?? []}
           />
         ) : (
           <PostForm
@@ -68,11 +93,19 @@ export default async function PostPage({
             imageUrl=""
             categoryId=""
             tags={[]}
-            status=""
+            status="draft"
             categories={categories}
+            types={types}
+            seriesOptions={seriesOptions}
+            availableRelatedPosts={availableRelatedPosts}
             slug=""
             description={""}
-            readingTimeMins={0}
+            readingTimeMins={1}
+            featured={false}
+            repoUrl=""
+            typeId=""
+            seriesId=""
+            relatedPosts={[]}
           />
         )}
       </div>

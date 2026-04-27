@@ -5,7 +5,7 @@ import prisma from "@/lib/prisma";
 import { getValidDomains, normalizeName } from "@/lib/utils";
 import { UserRole } from "@/prisma/generated/enums";
 import { betterAuth, type BetterAuthOptions } from "better-auth";
-import { admin, customSession, magicLink } from "better-auth/plugins";
+import { admin, customSession } from "better-auth/plugins";
 
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { APIError, createAuthMiddleware } from "better-auth/api";
@@ -92,18 +92,6 @@ const options = {
         };
       }
 
-      if (ctx.path === "/sign-in/magic-link") {
-        return {
-          context: {
-            ...ctx,
-            body: {
-              ...ctx.body,
-              name: normalizeName(ctx.body.name)
-            }
-          },
-        };
-      }
-
       if (ctx.path === "/update-user") {
         return {
           context: {
@@ -165,18 +153,6 @@ const options = {
       adminRoles: [UserRole.ADMIN],
       ac,
       roles,
-    }),
-    magicLink({
-      sendMagicLink: async ({ email, url }) => {
-        await sendEmailAction({
-          to: email,
-          subject: "Magic Link Login",
-          meta: {
-            description: "Please click the link below to log in.",
-            link: String(url),
-          },
-        });
-      },
     }),
   ],
 } satisfies BetterAuthOptions;

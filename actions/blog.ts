@@ -7,8 +7,8 @@ import prisma from "@/lib/prisma";
 
 const PAGE_SIZE = 10;
 
-export const getPosts = async (page: number) => {
-  const skip = (page - 1) * PAGE_SIZE;
+export const getPosts = async (page: number, pageSize = PAGE_SIZE) => {
+  const skip = (page - 1) * pageSize;
   const session = await authSession();
 
   const currentUser = session?.user.id
@@ -22,13 +22,14 @@ export const getPosts = async (page: number) => {
     const [posts, totalCount] = await prisma.$transaction([
       prisma.post.findMany({
         skip,
-        take: PAGE_SIZE,
+        take: pageSize,
         orderBy: { updatedAt: "desc" },
         include: {
           user: {
             select: { image: true, name: true, id: true, savedPosts: true },
           },
           category: true,
+          type: true,
         },
       }),
       prisma.post.count(),
@@ -39,7 +40,7 @@ export const getPosts = async (page: number) => {
         ...post,
         savedPosts: currentUser?.savedPosts ?? [],
       })),
-      totalPages: Math.ceil(totalCount / PAGE_SIZE),
+      totalPages: Math.ceil(totalCount / pageSize),
       currentPage: page,
     };
   } catch (err) {
@@ -102,6 +103,7 @@ export const getPostsByCategory = async (categoryId: string, page: number) => {
             select: { image: true, name: true, id: true, savedPosts: true },
           },
           category: true,
+          type: true,
         },
       }),
       prisma.post.count({ where: { categoryId } }),
@@ -144,6 +146,7 @@ export const getPostsByTag = async (tag: string, page: number) => {
             select: { image: true, name: true, id: true, savedPosts: true },
           },
           category: true,
+          type: true,
         },
       }),
       prisma.post.count({ where: { tags: { has: tag } } }),

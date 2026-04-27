@@ -5,7 +5,6 @@ import {
   inferAdditionalFields,
   adminClient,
   customSessionClient,
-  magicLinkClient,
 } from "better-auth/client/plugins";
 import type { auth } from "@/lib/auth";
 import { ac, roles } from "@/lib/permissions";
@@ -16,7 +15,6 @@ const authClient = createAuthClient({
     inferAdditionalFields<typeof auth>(),
     adminClient({ ac, roles }),
     customSessionClient<typeof auth>(),
-    magicLinkClient(),
   ],
 });
 

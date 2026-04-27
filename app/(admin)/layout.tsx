@@ -1,7 +1,7 @@
 /** @format */
 
 import { AppSidebar } from "@/components/app-sidebar";
-import { SidebarProvider } from "@/components/ui/sidebar";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 
 export default function AdminLayout({
   children,
@@ -11,7 +11,7 @@ export default function AdminLayout({
   return (
     <SidebarProvider>
       <AppSidebar />
-      <div className="p-6 w-full">{children}</div>
+      <SidebarInset className="p-6">{children}</SidebarInset>
     </SidebarProvider>
   );
 }

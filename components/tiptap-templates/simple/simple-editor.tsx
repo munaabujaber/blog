@@ -274,6 +274,14 @@ export function SimpleEditor({
 
   useEffect(() => {
     if (!editor) return;
+    if (editor.getHTML() === content) return;
+
+    editor.commands.setContent(content, { emitUpdate: false });
+    previousImages.current = new Set(extractImageUrls(editor));
+  }, [content, editor]);
+
+  useEffect(() => {
+    if (!editor) return;
 
     const isEditorTarget = (node: Node | null) => {
       const el = node instanceof Element ? node : node?.parentElement;

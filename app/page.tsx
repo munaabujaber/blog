@@ -1,17 +1,19 @@
 /** @format */
 
-import Image from "next/image";
-import { ThemeToggle } from "@/components/buttons/ThemeToggle";
-import { Button } from "@/components/ui/button";
 import { GetStartedButton } from "@/components/buttons/get-started";
 import { getPosts } from "@/actions/blog";
+import Footer from "@/components/footer";
 import Header from "@/components/header";
 import { NavMenu } from "@/components/navbar";
 import Pagination from "@/components/pagination";
-import PostCard from "@/components/post-card";
+import PostTimeline from "@/components/post-timeline";
 import { authSession } from "@/lib/auth-utils";
 import FileUploader from "@/components/file-uploader";
 import MediaUploader from "@/components/media-uploader";
+
+const LANDING_POSTS_PER_PAGE = 20;
+const TIMELINE_COLUMN_VERTICAL_GAP_RATIO = 1 / 5;
+const TIMELINE_DESKTOP_WIDTH = "70rem";
 
 export default async function Home({
   searchParams,
@@ -20,7 +22,10 @@ export default async function Home({
 }) {
   const params = await searchParams;
   const page = Number(params.page) || 1;
-  const { posts, totalPages, currentPage } = await getPosts(page);
+  const { posts, totalPages, currentPage } = await getPosts(
+    page,
+    LANDING_POSTS_PER_PAGE,
+  );
   const session = await authSession();
   return (
     <>
@@ -32,11 +37,11 @@ export default async function Home({
       </div>
       <Header />
       <div className="flex flex-col gap-6 justify-center">
-        <div className="container mx-auto p-4 grid grid-cols-1 md:grid-cols-4 gap-6 py-6">
-          {posts.map((post) => (
-            <PostCard post={post} key={post.id} />
-          ))}
-        </div>
+        <PostTimeline
+          posts={posts}
+          columnVerticalGapRatio={TIMELINE_COLUMN_VERTICAL_GAP_RATIO}
+          desktopTimelineWidth={TIMELINE_DESKTOP_WIDTH}
+        />
         {posts.length > 0 && (
           <Pagination
             page={page}
@@ -45,15 +50,7 @@ export default async function Home({
           />
         )}
       </div>
-      <div className="flex items-center justify-center h-dvh">
-        <div className="flex justify-center gap-8 flex-col items-center">
-          <ThemeToggle />
-          <FileUploader endpoint="imageUploader" />
-          <MediaUploader endpoint="mediaPost" />
-          <h1 className="text-6xl font-bold">Blog Template</h1>
-          <GetStartedButton />
-        </div>
-      </div>
+      <Footer />
     </>
   );
 }

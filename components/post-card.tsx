@@ -2,10 +2,8 @@
 
 "use client";
 
-import { Category, Post } from "@/prisma/generated/client";
-import { stripHtml } from "@/lib/utils";
+import { Category, Post, Type } from "@/prisma/generated/client";
 import { format } from "date-fns";
-import { MoveRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 
 interface PostProps {
   post: Post & { category: Category | null } & {
+    type: Type | null;
     user: {
       name: string;
       id: string;
@@ -23,65 +22,71 @@ interface PostProps {
 }
 
 export default function PostCard({ post }: PostProps) {
-  const excertp = stripHtml(post.content);
-
   return (
-    <Card className="w-full p-0 pb-4 border-0 shadow-md gap-1 relative">
-      <div className="relative h-60">
-        <Image
-          src={post.imageUrl}
-          alt={post.title}
-          fill
-          className="rounded-sm object-cover"
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-        />
-      </div>
-      <CardHeader className="gap-0">
-        <CardTitle className="font-semibold line-clamp-3 pt-2">
-          {post.title}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <p className="text-sm line-clamp-3">{excertp} </p>
-
-        <div className="flex gap-2 py-6 flex-wrap">
-          {post.tags.map((tag) => (
-            <Link href={`/blog/tag/${tag}`} key={tag}>
-              <Badge variant="secondary">#{tag}</Badge>
-            </Link>
-          ))}
+    <Link
+      href={`/blog/posts/${post.slug}`}
+      className="group block h-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+    >
+      <Card className="h-full w-full gap-4 rounded-lg border-0 p-4 shadow-md transition duration-200 group-hover:-translate-y-0.5 group-hover:shadow-lg">
+        <div className="grid grid-cols-2 gap-3 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+          <span className="truncate text-left">
+            {post.category?.name ?? "Uncategorized"}
+          </span>
+          <span className="truncate text-right">{post.type?.name ?? "Post"}</span>
         </div>
 
-        <div className="flex justify-between w-full gap-2">
-          <div className="flex gap-1">
-            <div className="relative h-8 w-8 rounded-full shadow-lg">
-              <Image
-                className="rounded-full shadow-lg"
-                src={post.user.image!}
-                alt={post.user.name}
-                fill
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              />
-            </div>
+        <div className="relative aspect-[3/2] w-full overflow-hidden rounded-md bg-muted">
+          <Image
+            src={post.imageUrl}
+            alt={post.title}
+            fill
+            className="object-cover"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+          />
+        </div>
 
-            <div className="flex flex-col gap-1">
-              <span className="text-[10px] font-semibold">
-                {post.user.name}
-              </span>
-              <span className="text-[10px] text-neutral-500 font-semibold">
-                {format(post.createdAt, "dd/MM/yyyy")}
-              </span>
+        <CardContent className="flex flex-1 flex-col gap-3 px-0">
+          <div className="grid grid-cols-2 items-center gap-3 text-[11px] font-medium text-muted-foreground">
+            <div className="flex min-w-0 items-center gap-2">
+              {post.user.image && (
+                <div className="relative h-7 w-7 shrink-0 overflow-hidden rounded-full">
+                  <Image
+                    className="object-cover"
+                    src={post.user.image}
+                    alt={post.user.name}
+                    fill
+                    sizes="28px"
+                  />
+                </div>
+              )}
+              <span className="truncate">{post.user.name}</span>
             </div>
+            <span className="truncate text-right">
+              {format(post.createdAt, "dd/MM/yyyy")}
+            </span>
           </div>
 
-          <Link
-            href={`/blog/posts/${post.slug}`}
-            className="flex gap-1 text-sx items-center font-medium"
-          >
-            Read more <MoveRight />
-          </Link>
-        </div>
-      </CardContent>
-    </Card>
+          <CardHeader className="gap-0 px-0">
+            <CardTitle className="line-clamp-3 text-base font-semibold leading-snug transition group-hover:text-primary">
+              {post.title}
+            </CardTitle>
+          </CardHeader>
+
+          <p className="line-clamp-3 text-sm text-muted-foreground">
+            {post.description}
+          </p>
+
+          {post.tags.length > 0 && (
+            <div className="mt-auto flex flex-wrap gap-2 pt-2">
+              {post.tags.map((tag) => (
+                <Badge variant="secondary" key={tag} className="max-w-full">
+                  <span className="truncate">#{tag}</span>
+                </Badge>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </Link>
   );
 }
