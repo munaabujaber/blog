@@ -23,7 +23,7 @@ export const getPosts = async (page: number, pageSize = PAGE_SIZE) => {
       prisma.post.findMany({
         skip,
         take: pageSize,
-        orderBy: { updatedAt: "desc" },
+        orderBy: { createdAt: "desc" },
         include: {
           user: {
             select: { image: true, name: true, id: true, savedPosts: true },
@@ -97,7 +97,7 @@ export const getPostsByCategory = async (categoryId: string, page: number) => {
         where: { categoryId },
         skip,
         take: PAGE_SIZE,
-        orderBy: { updatedAt: "desc" },
+        orderBy: { createdAt: "desc" },
         include: {
           user: {
             select: { image: true, name: true, id: true, savedPosts: true },
@@ -140,7 +140,7 @@ export const getPostsByTag = async (tag: string, page: number) => {
         where: { tags: { has: tag } },
         skip,
         take: PAGE_SIZE,
-        orderBy: { updatedAt: "desc" },
+        orderBy: { createdAt: "desc" },
         include: {
           user: {
             select: { image: true, name: true, id: true, savedPosts: true },
