@@ -29,8 +29,8 @@ const accountLinks = [
 ];
 
 const companyLinks = [
-  { href: "/#about", label: "About" },
-  { href: "/#contact", label: "Contact" },
+  { href: "/contact#about-me", label: "About" },
+  { href: "/contact", label: "Contact" },
   { href: "/#work-with-me", label: "Work with me" },
   { href: "/#newsletter", label: "Newsletter" },
 ];
@@ -44,7 +44,7 @@ const legalLinks = [
 
 export default function Footer() {
   return (
-    <footer id="contact" className="border-t bg-muted/30">
+    <footer id="footer-contact" className="border-t bg-muted/30">
       <div className="mx-auto grid w-full max-w-7xl gap-10 px-4 py-12 sm:px-6 lg:grid-cols-[1.4fr_2fr] lg:px-8">
         <div className="flex flex-col gap-5">
           <Link href="/" className="flex items-center gap-3">
