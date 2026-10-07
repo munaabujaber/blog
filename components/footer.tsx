@@ -29,7 +29,7 @@ const accountLinks = [
 ];
 
 const companyLinks = [
-  { href: "/contact#about-me", label: "About" },
+  { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
   { href: "/#work-with-me", label: "Work with me" },
   { href: "/#newsletter", label: "Newsletter" },

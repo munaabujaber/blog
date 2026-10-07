@@ -1,6 +1,10 @@
 /** @format */
 
-import { getBlogPostBySlug, updatePostViews } from "@/actions/blog";
+import {
+  getBlogPostBySlug,
+  getRecentPosts,
+  updatePostViews,
+} from "@/actions/blog";
 import PostContent from "@/components/post-content";
 
 export default async function BlogPage({
@@ -10,11 +14,14 @@ export default async function BlogPage({
 }) {
   const { slug } = await params;
 
-  const post = await getBlogPostBySlug(slug);
+  const [post, recentPosts] = await Promise.all([
+    getBlogPostBySlug(slug),
+    getRecentPosts(3, slug),
+  ]);
 
   if (!post) return null;
 
   await updatePostViews(post.id);
 
-  return <PostContent post={post} />;
+  return <PostContent post={post} recentPosts={recentPosts} />;
 }

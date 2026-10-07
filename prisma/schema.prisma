@@ -182,3 +182,13 @@ model Upload {
 
   @@map("uploads")
 }
+
+model AboutPageContent {
+  id           String   @id @default("about")
+  generalText  String
+  mainPhotoUrl String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("about_page_content")
+}

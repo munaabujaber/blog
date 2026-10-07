@@ -31,6 +31,24 @@ export default function Page() {
         <SignInOauthButton signUp provider="google" />
         <SignInOauthButton signUp provider="github" />
       </div>
+
+      <p className="max-w-sm text-sm leading-6 text-muted-foreground">
+        By creating an account, you agree to the{" "}
+        <Link
+          href="/terms"
+          className="font-medium text-foreground underline underline-offset-4"
+        >
+          Terms of Use
+        </Link>{" "}
+        and acknowledge the{" "}
+        <Link
+          href="/privacy"
+          className="font-medium text-foreground underline underline-offset-4"
+        >
+          Privacy Notice
+        </Link>
+        .
+      </p>
     </div>
   );
 }

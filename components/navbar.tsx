@@ -65,7 +65,7 @@ export function NavMenu({
 
         <nav className="hidden items-center gap-1 md:flex">
           <Button variant="ghost" asChild>
-            <Link href="/contact#about-me">About</Link>
+            <Link href="/about">About</Link>
           </Button>
           <Button variant="ghost" asChild>
             <Link href="/contact">Contact</Link>
@@ -193,7 +193,7 @@ function MobileMenu({
         <div className="flex flex-col gap-2 px-4">
           <SheetClose asChild>
             <Link
-              href="/contact#about-me"
+              href="/about"
               className="rounded-md px-2 py-2 text-sm font-medium hover:bg-accent"
             >
               About

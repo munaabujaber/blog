@@ -66,6 +66,29 @@ export const getBlogPostBySlug = async (slug: string) => {
   }
 };
 
+export const getRecentPosts = async (limit = 3, excludedSlug?: string) => {
+  try {
+    const posts = await prisma.post.findMany({
+      where: excludedSlug ? { slug: { not: excludedSlug } } : undefined,
+      take: limit,
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        imageUrl: true,
+        createdAt: true,
+        category: { select: { name: true } },
+      },
+    });
+
+    return posts;
+  } catch (err) {
+    console.error({ err });
+    throw new Error("Something went wrong");
+  }
+};
+
 export const updatePostViews = async (id: string) => {
   try {
     const post = await prisma.post.update({

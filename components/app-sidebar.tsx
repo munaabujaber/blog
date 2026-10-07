@@ -1,6 +1,6 @@
 /** @format */
 
-import { Calendar, Home, Inbox, Search } from "lucide-react";
+import { Calendar, FileText, Home, Inbox, Search } from "lucide-react";
 
 import {
   Sidebar,
@@ -29,6 +29,11 @@ const items = [
     title: "Categories",
     url: "/categories",
     icon: Calendar,
+  },
+  {
+    title: "About Page",
+    url: "/dashboard/about",
+    icon: FileText,
   },
   {
     title: "Saved Posts",

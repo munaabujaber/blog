@@ -10,6 +10,17 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRef } from "react";
 
+type RecentPost = {
+  id: string;
+  title: string;
+  slug: string;
+  imageUrl: string;
+  createdAt: Date;
+  category: {
+    name: string;
+  } | null;
+};
+
 interface PostContentProps {
   post: {
     id: string;
@@ -27,9 +38,52 @@ interface PostContentProps {
       name: string;
     } | null;
   };
+  recentPosts: RecentPost[];
 }
 
-export default function PostContent({ post }: PostContentProps) {
+function RecentPostsList({ posts }: { posts: RecentPost[] }) {
+  if (posts.length === 0) return null;
+
+  return (
+    <section className="hidden rounded-md border bg-background/85 p-4 shadow-sm backdrop-blur lg:block">
+      <h2 className="mb-3 text-sm font-semibold">Recent posts</h2>
+      <div className="space-y-3">
+        {posts.map((recentPost) => (
+          <Link
+            href={`/blog/posts/${recentPost.slug}`}
+            key={recentPost.id}
+            className="group grid grid-cols-[5rem_minmax(0,1fr)] gap-3 rounded-md p-1 transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <div className="relative aspect-[4/3] overflow-hidden rounded-md bg-muted">
+              <Image
+                src={recentPost.imageUrl}
+                alt={recentPost.title}
+                fill
+                className="object-cover transition duration-200 group-hover:scale-105"
+                sizes="80px"
+              />
+            </div>
+            <div className="min-w-0">
+              <p className="line-clamp-2 text-sm font-medium leading-snug transition group-hover:text-primary">
+                {recentPost.title}
+              </p>
+              <div className="mt-1 flex min-w-0 flex-col gap-0.5 text-xs text-muted-foreground">
+                {recentPost.category && (
+                  <span className="truncate">{recentPost.category.name}</span>
+                )}
+                <time dateTime={new Date(recentPost.createdAt).toISOString()}>
+                  {format(new Date(recentPost.createdAt), "MM/dd/yyyy")}
+                </time>
+              </div>
+            </div>
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+export default function PostContent({ post, recentPosts }: PostContentProps) {
   const articleRef = useRef<HTMLDivElement>(null);
 
   return (
@@ -79,10 +133,10 @@ export default function PostContent({ post }: PostContentProps) {
           </div>
         </article>
 
-        <PostTableOfContents
-          articleRef={articleRef}
-          className="lg:col-start-2 lg:row-span-2 lg:row-start-1"
-        />
+        <div className="space-y-4 lg:col-start-2 lg:row-span-2 lg:row-start-1">
+          <RecentPostsList posts={recentPosts} />
+          <PostTableOfContents articleRef={articleRef} />
+        </div>
 
         <div
           ref={articleRef}
